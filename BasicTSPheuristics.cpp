@@ -441,7 +441,6 @@ void g_test_heuristics() {
 
 	cin >> n;
 
-
 }//g_test_heuristics
 
 int main() {
