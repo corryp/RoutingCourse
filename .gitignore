@@ -11,3 +11,5 @@ nul
 CLAUDE.md
 __pycache__
 tsp.csv
+explicit_unsupported
+explicit_unsupported/*.*
