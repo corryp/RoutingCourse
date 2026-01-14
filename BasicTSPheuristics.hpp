@@ -56,6 +56,16 @@ void g_gen_tsp_instance(const int ai_n, vector<CityPair> &av_dat, vector<vector<
 	}//i
 }//g_gen_tsp_instance
 
+void g_output_tour_csv(const vector<int> &ai_tour, const vector<vector<double>> &ad_xy) {
+	ofstream ofs("tsp.csv");
+	ofs << "order,city,x,y" << endl;
+	for (int k = 0; k < ai_tour.size(); ++k) {
+		int city = ai_tour[k];
+		ofs << k << "," << city << "," << ad_xy[city][0] << "," << ad_xy[city][1] << endl;
+	}
+	ofs.close();
+}//g_output_tour_csv
+
 double gd_calc_z(int ai_n, const vector<vector<double>> &ad_dist, const vector<int> &ai_tour) {
 	double z = ad_dist[ai_tour[ai_n - 1]][ai_tour[0]];
 

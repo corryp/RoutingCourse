@@ -39,12 +39,13 @@ def extract_tour(x_vars):
 def plot_tour(coords, tour, title="TSP Tour"):
     x_vals = [coords[i][0] for i in tour] + [coords[tour[0]][0]]
     y_vals = [coords[i][1] for i in tour] + [coords[tour[0]][1]]
+    length = sum(math.dist(coords[tour[i]], coords[tour[(i + 1) % len(tour)]]) for i in range(len(tour)))
     plt.figure(figsize=(6, 6))
     plt.scatter([c[0] for c in coords], [c[1] for c in coords], color='blue')
     plt.plot(x_vals, y_vals, color='red', linewidth=2)
     for idx, (x, y) in enumerate(coords):
-        plt.text(x + 1, y + 1, str(idx), fontsize=9)
-    plt.title(title)
+        plt.text(x, y, str(idx), fontsize=9)
+    plt.title(f"{title} (length: {length:.2f})")
     plt.show()
 
 
