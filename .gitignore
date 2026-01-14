@@ -9,4 +9,4 @@ claude-*
 *.json
 nul
 CLAUDE.md
-_pycache_
+__pycache__
