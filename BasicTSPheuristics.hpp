@@ -444,8 +444,9 @@ void g_test_heuristics() {
 }//g_test_heuristics
 
 
-
+/*
 int main() {
 	g_test_heuristics();
 	return 0;
 }
+	*/

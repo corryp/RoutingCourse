@@ -1,10 +1,12 @@
-BasicTSPheuristics.exe
-BasicTSPheuristics.ilk
-BasicTSPheuristics.obj
-BasicTSPheuristics.pdb
+*.exe
+*.ilk
+*.obj
+*.pdb
 vc140.pdb
 .vscode/tasks.json
 claude-*
 *.txt
 *.json
 nul
+CLAUDE.md
+_pycache_
