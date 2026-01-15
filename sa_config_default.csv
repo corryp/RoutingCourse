@@ -1,0 +1,12 @@
+param,value,options
+neighbourhood,multi,2opt|swap|ins|multi
+init_soln,nn_2opt,random|nn|nn_2opt
+init_accept_rate,0.9,
+accept_limit_coef,10,
+nbr_limit_coef,100,
+tfact,0.95,
+stale_step_lim,10,
+log_every_it,0,0|1
+p_2opt,0.34,(multi only)
+p_swap,0.33,(multi only)
+p_ins,0.33,(multi only)

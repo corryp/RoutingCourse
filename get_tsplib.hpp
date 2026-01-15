@@ -56,6 +56,38 @@ double g_calc_distance(double x1, double y1, double x2, double y2, EdgeWeightTyp
 	}
 }
 
+// Overload that reads instance name from config file
+// CSV format: param,value,comment (third column ignored)
+// Expected row: instance,<name>,<optional comment>
+//
+int get_tsplib(vector<CityPair> &av_dat, vector<vector<double>> &ad_dist, vector<vector<double>> &ad_xy, string config_fname="") {
+	string s_fname = config_fname.empty() ? "tsplib_option_default.csv" : config_fname;
+	ifstream cfg(s_fname);
+	if (!cfg.is_open()) {
+		throw runtime_error("Could not open config file: " + s_fname);
+	}
+
+	string line, s_name;
+	getline(cfg, line); // skip header
+	while (getline(cfg, line)) {
+		istringstream iss(line);
+		string param, value;
+		if (getline(iss, param, ',') && getline(iss, value, ',')) {
+			if (param == "instance") {
+				s_name = value;
+				break;
+			}
+		}
+	}
+	cfg.close();
+
+	if (s_name.empty()) {
+		throw runtime_error("Could not find 'instance' in tsplib_option.csv");
+	}
+
+	return get_tsplib(s_name, av_dat, ad_dist, ad_xy);
+}
+
 int get_tsplib(const string &as_name, vector<CityPair> &av_dat, vector<vector<double>> &ad_dist, vector<vector<double>> &ad_xy) {
 	string s_filename = "tsplib/" + as_name + ".tsp";
 	ifstream file(s_filename);

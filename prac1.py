@@ -1,7 +1,7 @@
 from LazyCallback import *
 from get_tsplib import get_tsplib
 
-name = 'ch130'
+name = 'fl417'
 coords, dist = get_tsplib(name)
 
 tour_lazy, obj_lazy, time_lazy = tsp_lazy_cplex(coords, dist)

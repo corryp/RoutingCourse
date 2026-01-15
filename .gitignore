@@ -13,3 +13,5 @@ __pycache__
 tsp.csv
 explicit_unsupported
 explicit_unsupported/*.*
+tsplib_option.csv
+sa_config.csv

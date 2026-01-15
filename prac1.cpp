@@ -32,6 +32,6 @@ void solve_tsplib(string tsp_name) {
 }
 
 int main() {
-    solve_tsplib("ch130");
+    solve_tsplib("fl417");
     return 0;
 }
