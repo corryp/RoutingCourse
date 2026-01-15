@@ -6,13 +6,13 @@ int main() {
     vector<vector<double>> d_dist, d_xy;
 
     // Load TSP instance (reads name from tsplib_option.csv)
-    int n = get_tsplib(v_dat, d_dist, d_xy);
+    int n = get_tsplib(v_dat, d_dist, d_xy, "tsplib_option.csv");
     cout << "Loaded TSP instance with " << n << " cities" << endl;
 
     // Initialise SA components from config file
     TSPnbrOp* nhd = nullptr;
     TSPsoln* x0 = nullptr;
-    SActrl hyper_params = initialise_sa(nhd, x0, n, d_dist);
+    SActrl hyper_params = initialise_sa(nhd, x0, n, d_dist, "sa_config.csv");
 
     cout << "Initial solution z = " << x0->md_z << endl;
 
