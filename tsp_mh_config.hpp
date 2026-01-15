@@ -16,6 +16,7 @@
 //
 // CSV format (3 columns: param, value, comment/options - third column is ignored):
 //   param,value,options
+//   seed,0,0=time-based|any positive int for fixed seed
 //   neighbourhood,multi,2opt|swap|ins|multi
 //   init_soln,nn_2opt,random|nn|nn_2opt
 //   init_accept_rate,0.9,
@@ -29,6 +30,7 @@
 //   p_ins,0.33,(multi only)
 //
 // Config options:
+//   seed             - 0: use time-based seed, >0: use specified seed for reproducibility
 //   neighbourhood    - 2opt, swap, ins, or multi (combines all three)
 //   init_soln        - random: random tour
 //                      nn: nearest neighbour heuristic
@@ -66,6 +68,13 @@ SActrl initialise_sa(TSPnbrOp*& nhd, TSPsoln*& x0, int ai_n, vector<vector<doubl
         }
     }
     file.close();
+
+    // Set random seed
+    int i_seed = config.count("seed") ? stoi(config["seed"]) : 0;
+    if (i_seed > 0)
+        srand(i_seed);
+    else
+        srand(static_cast<unsigned int>(time(NULL)));
 
     // Configure neighbourhood operator
     string s_nhd = config.count("neighbourhood") ? config["neighbourhood"] : "2opt";

@@ -1,4 +1,5 @@
 param,value,options
+seed,0,0=time-based|any positive int for fixed seed
 neighbourhood,multi,2opt|swap|ins|multi
 init_soln,nn_2opt,random|nn|nn_2opt
 init_accept_rate,0.9,
