@@ -5,6 +5,7 @@ init_soln,nn,random|nn|nn_2opt
 itmax,1000,max iterations
 tabu_tenure,10,number of iterations a solution remains tabu
 hash_length,1000,length of hash table for tabu list
+long_mem_wt,0.1,0=disabled|>0 weight for frequency penalty
 p_2opt,0.34,(multi only)
 p_swap,0.33,(multi only)
 p_ins,0.33,(multi only)

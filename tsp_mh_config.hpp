@@ -1,4 +1,4 @@
-#include "tsp_nhoods.hpp"
+#include "tsp_ts.hpp"
 #include <sstream>
 #include <map>
 
@@ -172,6 +172,7 @@ SActrl initialise_sa(TSPnbrOp*& nhd, TSPsoln*& x0, int ai_n, vector<vector<doubl
 //   nhd          - [out] neighbourhood operator (created and configured by this function)
 //   x0           - [out] initial solution (created and configured by this function)
 //   tabu_list    - [out] tabu list (created and configured by this function)
+//   long_mem     - [out] long-term memory (created if long_mem_wt > 0, otherwise nullptr)
 //   ai_n         - number of cities in the TSP instance
 //   ad_dist      - distance matrix for the TSP instance
 //   config_fname - path to CSV config file (defaults to "ts_config_default.csv" if empty)
@@ -187,6 +188,7 @@ SActrl initialise_sa(TSPnbrOp*& nhd, TSPsoln*& x0, int ai_n, vector<vector<doubl
 //   itmax,1000,max iterations
 //   tabu_tenure,10,iterations a solution remains tabu
 //   hash_length,1000,length of hash table
+//   long_mem_wt,0,0=disabled|>0 weight for frequency penalty
 //   p_2opt,0.34,(multi only)
 //   p_swap,0.33,(multi only)
 //   p_ins,0.33,(multi only)
@@ -200,9 +202,10 @@ SActrl initialise_sa(TSPnbrOp*& nhd, TSPsoln*& x0, int ai_n, vector<vector<doubl
 //   itmax          - maximum number of iterations
 //   tabu_tenure    - number of iterations a solution remains tabu
 //   hash_length    - length of hash table for z-value based tabu list
+//   long_mem_wt    - 0: no long-term memory, >0: frequency penalty weight
 //   p_2opt/p_swap/p_ins - probabilities for multi-neighbourhood (should sum to 1.0)
 //
-TSctrl initialise_ts(TSPnbrOp*& nhd, TSPsoln*& x0, TabuListZhash*& tabu_list, int ai_n, vector<vector<double>>& ad_dist, string config_fname="") {
+TSctrl initialise_ts(TSPnbrOp*& nhd, TSPsoln*& x0, TabuListZhash*& tabu_list, TSPnhdMem*& long_mem, int ai_n, vector<vector<double>>& ad_dist, string config_fname="") {
     string s_fname = config_fname.empty() ? "ts_config_default.csv" : config_fname;
     map<string, string> config = read_config(s_fname);
 
@@ -214,6 +217,13 @@ TSctrl initialise_ts(TSPnbrOp*& nhd, TSPsoln*& x0, TabuListZhash*& tabu_list, in
     int i_hash_len = config.count("hash_length") ? stoi(config["hash_length"]) : 1000;
     int i_tenure = config.count("tabu_tenure") ? stoi(config["tabu_tenure"]) : 10;
     tabu_list = new TabuListZhash(i_hash_len, i_tenure);
+
+    // Configure long-term memory (nullptr if weight is 0)
+    double d_long_mem_wt = config.count("long_mem_wt") ? stod(config["long_mem_wt"]) : 0.0;
+    if (d_long_mem_wt > 0.0)
+        long_mem = new TSPnhdMem(*nhd, d_long_mem_wt);
+    else
+        long_mem = nullptr;
 
     // Configure TS-specific hyperparameters
     TSctrl hyper_params;

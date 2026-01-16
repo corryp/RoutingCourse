@@ -13,7 +13,8 @@ int main() {
     TSPnbrOp* nhd = nullptr;
     TSPsoln* x0 = nullptr;
     TabuListZhash* tabu_list = nullptr;
-    TSctrl hyper_params = initialise_ts(nhd, x0, tabu_list, n, d_dist);
+    TSPnhdMem* long_mem = nullptr;
+    TSctrl hyper_params = initialise_ts(nhd, x0, tabu_list, long_mem, n, d_dist, "ts_config.csv");
 
     cout << "Initial solution z = " << x0->md_z << endl;
 
@@ -22,7 +23,7 @@ int main() {
 
     // Run tabu search
     clock_t t_start = clock();
-    TSsummary stats = gx_tabu_search(hyper_params, *tabu_list, nullptr, *nhd, *x0, x_best);
+    TSsummary stats = gx_tabu_search(hyper_params, *tabu_list, long_mem, *nhd, *x0, x_best);
     double d_cpu = (clock() - t_start) / (double)CLOCKS_PER_SEC;
 
     // Output results
@@ -41,6 +42,7 @@ int main() {
     delete nhd;
     delete x0;
     delete tabu_list;
+    delete long_mem;
 
     return 0;
 }
