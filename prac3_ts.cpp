@@ -5,8 +5,8 @@ int main() {
     vector<CityPair> v_dat;
     vector<vector<double>> d_dist, d_xy;
 
-    // Load TSP instance (reads name from tsplib_option_default.csv)
-    int n = get_tsplib(v_dat, d_dist, d_xy);
+    // Load TSP instance (reads name from tsplib_option.csv)
+    int n = get_tsplib(v_dat, d_dist, d_xy, "tsplib_option.csv");
     cout << "Loaded TSP instance with " << n << " cities" << endl;
 
     // Initialise TS components from config file
