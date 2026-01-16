@@ -331,7 +331,7 @@ TSsummary gx_tabu_search(const TSctrl &a_ctrl, TabuListBase &a_tl, LongMemBase *
 	a_nbrhd.m_reset_nhd();
 	a_tl.m_reset();
 	LongMemBase *p_mem = (ap_mem == 0 ? new LongMemBase : ap_mem);	//just populates with a do-nothing empty shell
-	ap_mem->m_reset();
+	p_mem->m_reset();
 	a_xbest = a_x;
 
 	bool b_stop, b_move;

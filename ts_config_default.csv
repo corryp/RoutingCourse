@@ -1,0 +1,10 @@
+param,value,options
+seed,0,0=time-based|any positive int for fixed seed
+neighbourhood,2opt,2opt|swap|ins|multi
+init_soln,nn,random|nn|nn_2opt
+itmax,1000,max iterations
+tabu_tenure,10,number of iterations a solution remains tabu
+hash_length,1000,length of hash table for tabu list
+p_2opt,0.34,(multi only)
+p_swap,0.33,(multi only)
+p_ins,0.33,(multi only)
