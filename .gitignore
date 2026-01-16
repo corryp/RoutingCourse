@@ -16,3 +16,4 @@ explicit_unsupported/*.*
 tsplib_option.csv
 sa_config.csv
 ts_config.csv
+ga_config.csv

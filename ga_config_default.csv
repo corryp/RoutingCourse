@@ -1,0 +1,12 @@
+param,value,options
+seed,0,0=time-based|any positive int for fixed seed
+neighbourhood,2opt,2opt|swap|ins|multi (for mutation)
+max_gens,100,maximum generations
+pop_size,50,population size
+tourn_size,3,tournament size for selection
+n_xover,10,number of crossovers per generation
+pmutate,0.1,mutation probability
+elitist,1,0=disabled|1=enabled
+p_2opt,0.34,(multi only)
+p_swap,0.33,(multi only)
+p_ins,0.33,(multi only)

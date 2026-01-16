@@ -1,4 +1,5 @@
 #include "tsp_ts.hpp"
+#include "tsp_ga.hpp"
 #include <sstream>
 #include <map>
 
@@ -228,6 +229,67 @@ TSctrl initialise_ts(TSPnbrOp*& nhd, TSPsoln*& x0, TabuListZhash*& tabu_list, TS
     // Configure TS-specific hyperparameters
     TSctrl hyper_params;
     hyper_params.mi_itmax = config.count("itmax") ? stoi(config["itmax"]) : 1000;
+
+    return hyper_params;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Genetic Algorithm initialisation
+//////////////////////////////////////////////////////////////////////////////
+
+// Initialises genetic algorithm components from a CSV configuration file.
+//
+// Parameters:
+//   mutt         - [out] mutation operator (created and configured by this function)
+//   xover        - [out] crossover operator (created and configured by this function)
+//   ai_n         - number of cities in the TSP instance
+//   ad_dist      - distance matrix for the TSP instance
+//   config_fname - path to CSV config file (defaults to "ga_config_default.csv" if empty)
+//
+// Returns:
+//   GActrl struct containing GA hyperparameters
+//
+// CSV format (3 columns: param, value, comment/options - third column is ignored):
+//   param,value,options
+//   seed,0,0=time-based|any positive int for fixed seed
+//   neighbourhood,2opt,2opt|swap|ins|multi (for mutation)
+//   max_gens,100,maximum generations
+//   pop_size,50,population size
+//   tourn_size,3,tournament size for selection
+//   n_xover,10,number of crossovers per generation
+//   pmutate,0.1,mutation probability
+//   elitist,1,0=disabled|1=enabled
+//   p_2opt,0.34,(multi only)
+//   p_swap,0.33,(multi only)
+//   p_ins,0.33,(multi only)
+//
+// Config options:
+//   seed           - 0: use time-based seed, >0: use specified seed for reproducibility
+//   neighbourhood  - 2opt, swap, ins, or multi (combines all three) - used for mutation
+//   max_gens       - maximum number of generations
+//   pop_size       - population size
+//   tourn_size     - tournament size for parent selection
+//   n_xover        - number of crossovers per generation
+//   pmutate        - probability of mutation for each individual
+//   elitist        - 1: use elitist strategy (preserve best), 0: disabled
+//   p_2opt/p_swap/p_ins - probabilities for multi-neighbourhood (should sum to 1.0)
+//
+GActrl initialise_ga(TSPnbrOp*& mutt, TSPxover*& xover, int ai_n, vector<vector<double>>& ad_dist, string config_fname="") {
+    string s_fname = config_fname.empty() ? "ga_config_default.csv" : config_fname;
+    map<string, string> config = read_config(s_fname);
+
+    set_random_seed(config);
+    mutt = create_neighbourhood(config, ai_n, ad_dist);
+    xover = new TSPxover(ai_n, ad_dist);
+
+    // Configure GA-specific hyperparameters
+    GActrl hyper_params;
+    hyper_params.mi_max_gens = config.count("max_gens") ? stoi(config["max_gens"]) : 100;
+    hyper_params.mi_pop_size = config.count("pop_size") ? stoi(config["pop_size"]) : 50;
+    hyper_params.mi_tourn_size = config.count("tourn_size") ? stoi(config["tourn_size"]) : 3;
+    hyper_params.mi_n_xover = config.count("n_xover") ? stoi(config["n_xover"]) : 10;
+    hyper_params.md_pmutate = config.count("pmutate") ? stod(config["pmutate"]) : 0.1;
+    hyper_params.mi_elitist = config.count("elitist") ? stoi(config["elitist"]) : 1;
 
     return hyper_params;
 }
