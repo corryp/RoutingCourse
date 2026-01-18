@@ -106,6 +106,7 @@ struct SActrl {
 	int mi_nbr_limit_coef;		//next temp step if mi_nbr_limit_coef * N nbrs attempted
 	double md_tfact;
 	int mi_stale_step_lim;		//algorithm will stop after this many steps without improvment;
+	int mi_max_iter;			//maximum number of iterations (0 = no limit)
 
 	//logfile settings
 	bool mb_every_it;			//true => every iteration logged : false => log end of temp step only
@@ -115,6 +116,7 @@ struct SAsummary {
 	double md_z0;
 	double md_zbest;
 	double md_t0;
+	double md_tfinal;
 	int mi_tstep_ctr;
 	int mi_nbr_ctr;
 	int mi_mv_ctr;
@@ -188,7 +190,7 @@ SAsummary gx_simulated_annealing(const SActrl &a_ctrl, NbrOp &a_nbrhd, Soln &a_x
 	double p_accpt;
 	double d_temp = d_t0;
 	a_xbest = a_x;
-	while (i_stale_ctr < a_ctrl.mi_stale_step_lim) {
+	while (i_stale_ctr < a_ctrl.mi_stale_step_lim && (a_ctrl.mi_max_iter == 0 || i_totit < a_ctrl.mi_max_iter)) {
 		i_accpt_ctr = 0;
 		i_nbr_ctr = 0;
 		d_z = a_x.md_z;
@@ -230,6 +232,7 @@ SAsummary gx_simulated_annealing(const SActrl &a_ctrl, NbrOp &a_nbrhd, Soln &a_x
 
 	delete p_nbr;
 	stats.md_zbest = a_xbest.md_z;
+	stats.md_tfinal = d_temp;
 	return stats;
 }//gx_simulated_annealing
 

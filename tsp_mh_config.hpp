@@ -124,6 +124,7 @@ TSPsoln* create_initial_solution(const map<string, string>& config, int ai_n, ve
 //   nbr_limit_coef,100,
 //   tfact,0.95,
 //   stale_step_lim,10,
+//   max_iter,0,0=no limit|any positive int
 //   log_every_it,0,0|1
 //   p_2opt,0.34,(multi only)
 //   p_swap,0.33,(multi only)
@@ -140,6 +141,7 @@ TSPsoln* create_initial_solution(const map<string, string>& config, int ai_n, ve
 //   nbr_limit_coef    - temperature step ends after nbr_limit_coef * n neighbours evaluated
 //   tfact            - temperature reduction factor (T_new = T * tfact)
 //   stale_step_lim   - algorithm stops after this many temp steps without acceptance
+//   max_iter         - maximum number of iterations (0 = no limit)
 //   log_every_it     - 1: log every iteration, 0: log end of temp step only
 //   p_2opt/p_swap/p_ins - probabilities for multi-neighbourhood (should sum to 1.0)
 //
@@ -158,6 +160,7 @@ SActrl initialise_sa(TSPnbrOp*& nhd, TSPsoln*& x0, int ai_n, vector<vector<doubl
     hyper_params.mi_nbr_limit_coef = config.count("nbr_limit_coef") ? stoi(config["nbr_limit_coef"]) : 100;
     hyper_params.md_tfact = config.count("tfact") ? stod(config["tfact"]) : 0.95;
     hyper_params.mi_stale_step_lim = config.count("stale_step_lim") ? stoi(config["stale_step_lim"]) : 10;
+    hyper_params.mi_max_iter = config.count("max_iter") ? stoi(config["max_iter"]) : 0;
     hyper_params.mb_every_it = config.count("log_every_it") ? (stoi(config["log_every_it"]) != 0) : false;
 
     return hyper_params;

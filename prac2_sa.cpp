@@ -29,6 +29,7 @@ int main() {
     cout << "Initial z = " << stats.md_z0 << endl;
     cout << "Best z = " << stats.md_zbest << endl;
     cout << "T0 = " << stats.md_t0 << endl;
+    cout << "Tfinal = " << stats.md_tfinal << endl;
     cout << "Temp steps = " << stats.mi_tstep_ctr << endl;
     cout << "Neighbours evaluated = " << stats.mi_nbr_ctr << endl;
     cout << "Moves made = " << stats.mi_mv_ctr << endl;
