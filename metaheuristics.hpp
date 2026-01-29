@@ -565,3 +565,120 @@ GAtrace gx_genetic_alg(const GActrl &a_ctrl, NbrOp &a_mutt, XoverBase &a_xover, 
 	delete p_nbr;
 	return trc;
 }//gx_genetic_alg
+
+////////////////////////////////Variable Neighbourhood Search....
+
+struct VNSctrl {
+	int mi_kmax;			//max number of neighbourhoods to cycle through
+	int mi_max_iter;		//maximum number of VNS iterations (0 = no limit)
+	int mi_shake_steps;		//number of random moves per shake step
+
+	//logfile settings
+	bool mb_every_it;		//true => every k-step logged : false => log end of iteration only
+};//VNSctrl
+
+struct VNSsummary {
+	double md_z0;
+	double md_zbest;
+	int mi_iter_ctr;
+	int mi_ls_ctr;
+};//VNSsummary
+
+struct VNStrace {
+	int mi_iter;
+	int mi_k;
+	double md_zbest;
+	double md_z;
+	double md_zshake;
+	double md_zls;
+};//VNStrace
+
+void g_init_vns_log(Logger *ap_log) {
+	if (ap_log == 0)
+		return;
+
+	ap_log->m_f("iter", "iter");
+	ap_log->m_f("k", "k");
+	ap_log->m_f("zbest", "zbest");
+	ap_log->m_f("z", "z");
+	ap_log->m_f("zshake", "zshake");
+	ap_log->m_f("zls", "zls");
+	ap_log->m_write_header();
+}//g_init_vns_log
+
+void g_write_vns_log(Logger *ap_log, VNStrace a_dat) {
+	if (ap_log == 0)
+		return;
+
+	ap_log->m_log("iter", a_dat.mi_iter);
+	ap_log->m_log("k", a_dat.mi_k);
+	ap_log->m_log("zbest", a_dat.md_zbest);
+	ap_log->m_log("z", a_dat.md_z);
+	ap_log->m_log("zshake", a_dat.md_zshake);
+	ap_log->m_log("zls", a_dat.md_zls);
+	ap_log->m_write_record();
+}//g_write_vns_log
+
+//a_x should contain the initial solution, and will be overwritten for use as incumbent solution
+//a_nhds is an ordered vector of neighbourhood operators (determines VNS cycling order)
+//
+VNSsummary gx_basic_vns(const VNSctrl &a_ctrl, vector<NbrOp*> &a_nhds, Soln &a_x, Soln &a_xbest, Logger *ap_log = 0) {
+	g_init_vns_log(ap_log);
+	VNSsummary stats = { a_x.md_z, a_x.md_z, 0, 0 };
+
+	int i_kmax = a_ctrl.mi_kmax < (int)a_nhds.size() ? a_ctrl.mi_kmax : (int)a_nhds.size();
+	Soln* p_xshake = a_nhds[0]->mp_new_soln();
+	Soln* p_xls = a_nhds[0]->mp_new_soln();
+	Soln* p_nbr = a_nhds[0]->mp_new_soln();
+	a_xbest = a_x;
+
+	VNStrace trc = { 0, 0, a_x.md_z, a_x.md_z, 0, 0 };
+	g_write_vns_log(ap_log, trc);
+
+	for (trc.mi_iter = 1; a_ctrl.mi_max_iter == 0 || trc.mi_iter <= a_ctrl.mi_max_iter; ++trc.mi_iter) {
+		int k = 0;
+		while (k < i_kmax) {
+			//shake: apply shake_steps random moves using neighbourhood k
+			//
+			*p_xshake = a_x;
+			for (int s = 0; s < a_ctrl.mi_shake_steps; ++s) {
+				a_nhds[k]->md_rand_nbr(*p_xshake, p_nbr);
+				*p_xshake = *p_nbr;
+			}//s
+			trc.md_zshake = p_xshake->md_z;
+
+			//local search: first improvement using neighbourhood k
+			//
+			gx_local_search(false, *a_nhds[k], *p_xshake, *p_xls);
+			++stats.mi_ls_ctr;
+			trc.md_zls = p_xls->md_z;
+
+			//neighbourhood change
+			//
+			trc.mi_k = k;
+			if (p_xls->md_z + gd_mhtol < a_x.md_z) {
+				a_x = *p_xls;
+				k = 0;		//improvement found: reset to first neighbourhood
+				if (a_x.md_z + gd_mhtol < a_xbest.md_z)
+					a_xbest = a_x;
+			}//if
+			else
+				++k;		//no improvement: try next neighbourhood
+
+			trc.md_z = a_x.md_z;
+			trc.md_zbest = a_xbest.md_z;
+			if (a_ctrl.mb_every_it)
+				g_write_vns_log(ap_log, trc);
+		}//wend (k loop)
+		++stats.mi_iter_ctr;
+		if (!a_ctrl.mb_every_it)
+			g_write_vns_log(ap_log, trc);
+	}//trc.mi_iter
+
+	delete p_xshake;
+	delete p_xls;
+	delete p_nbr;
+
+	stats.md_zbest = a_xbest.md_z;
+	return stats;
+}//gx_basic_vns

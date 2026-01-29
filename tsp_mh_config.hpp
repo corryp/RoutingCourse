@@ -277,6 +277,19 @@ TSctrl initialise_ts(TSPnbrOp*& nhd, TSPsoln*& x0, TabuListZhash*& tabu_list, TS
 //   elitist        - 1: use elitist strategy (preserve best), 0: disabled
 //   p_2opt/p_swap/p_ins - probabilities for multi-neighbourhood (should sum to 1.0)
 //
+// Creates a single neighbourhood operator by name
+//
+TSPnbrOp* create_neighbourhood_by_name(const string& as_name, int ai_n, vector<vector<double>>& ad_dist) {
+    if (as_name == "2opt")
+        return new Op2opt(ai_n, ad_dist);
+    else if (as_name == "swap")
+        return new OpSwap(ai_n, ad_dist);
+    else if (as_name == "ins")
+        return new OpIns(ai_n, ad_dist);
+    else
+        return new Op2opt(ai_n, ad_dist); // default
+}
+
 GActrl initialise_ga(TSPnbrOp*& mutt, TSPxover*& xover, int ai_n, vector<vector<double>>& ad_dist, string config_fname="") {
     string s_fname = config_fname.empty() ? "ga_config_default.csv" : config_fname;
     map<string, string> config = read_config(s_fname);
@@ -293,6 +306,60 @@ GActrl initialise_ga(TSPnbrOp*& mutt, TSPxover*& xover, int ai_n, vector<vector<
     hyper_params.mi_n_xover = config.count("n_xover") ? stoi(config["n_xover"]) : 10;
     hyper_params.md_pmutate = config.count("pmutate") ? stod(config["pmutate"]) : 0.1;
     hyper_params.mi_elitist = config.count("elitist") ? stoi(config["elitist"]) : 1;
+
+    return hyper_params;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Variable Neighbourhood Search initialisation
+//////////////////////////////////////////////////////////////////////////////
+
+// Initialises VNS components from a CSV configuration file.
+//
+// Parameters:
+//   nhds         - [out] ordered vector of neighbourhood operators
+//   x0           - [out] initial solution (created and configured by this function)
+//   ai_n         - number of cities in the TSP instance
+//   ad_dist      - distance matrix for the TSP instance
+//   config_fname - path to CSV config file (defaults to "vns_config_default.csv" if empty)
+//
+// Returns:
+//   VNSctrl struct containing VNS hyperparameters
+//
+// CSV format (3 columns: param, value, comment/options - third column is ignored):
+//   param,value,options
+//   seed,0,0=time-based|any positive int for fixed seed
+//   init_soln,random,random|nn|nn_2opt
+//   kmax,3,max neighbourhoods to cycle (1-3)
+//   max_iter,100,maximum VNS iterations (0=no limit)
+//   shake_steps,1,random moves per shake step
+//   nhd_1,2opt,2opt|swap|ins
+//   nhd_2,swap,2opt|swap|ins
+//   nhd_3,ins,2opt|swap|ins
+//   log_every_it,0,0|1
+//
+VNSctrl initialise_vns(vector<NbrOp*>& nhds, TSPsoln*& x0, int ai_n, vector<vector<double>>& ad_dist, string config_fname="") {
+    string s_fname = config_fname.empty() ? "vns_config_default.csv" : config_fname;
+    map<string, string> config = read_config(s_fname);
+
+    set_random_seed(config);
+    x0 = dynamic_cast<TSPsoln*>(create_initial_solution(config, ai_n, ad_dist));
+
+    // Build ordered neighbourhood list from nhd_1, nhd_2, nhd_3
+    int i_kmax = config.count("kmax") ? stoi(config["kmax"]) : 3;
+    string s_nhd_keys[] = { "nhd_1", "nhd_2", "nhd_3" };
+    string s_nhd_defaults[] = { "2opt", "swap", "ins" };
+    for (int k = 0; k < i_kmax && k < 3; ++k) {
+        string s_nhd = config.count(s_nhd_keys[k]) ? config[s_nhd_keys[k]] : s_nhd_defaults[k];
+        nhds.push_back(create_neighbourhood_by_name(s_nhd, ai_n, ad_dist));
+    }//k
+
+    // Configure VNS-specific hyperparameters
+    VNSctrl hyper_params;
+    hyper_params.mi_kmax = i_kmax;
+    hyper_params.mi_max_iter = config.count("max_iter") ? stoi(config["max_iter"]) : 100;
+    hyper_params.mi_shake_steps = config.count("shake_steps") ? stoi(config["shake_steps"]) : 1;
+    hyper_params.mb_every_it = config.count("log_every_it") ? (stoi(config["log_every_it"]) != 0) : false;
 
     return hyper_params;
 }
