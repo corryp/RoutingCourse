@@ -2,7 +2,14 @@
 *.ilk
 *.obj
 *.pdb
+*.o
+*.out
 vc140.pdb
+prac1
+prac2_sa
+prac3_ts
+prac4_ga
+prac_vns
 .vscode/tasks.json
 claude-*
 *.txt
