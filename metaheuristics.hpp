@@ -110,6 +110,7 @@ struct SActrl {
 
 	//logfile settings
 	bool mb_every_it;			//true => every iteration logged : false => log end of temp step only
+	int mi_log_gap;				//log every Nth record to file and screen (1 = every record)
 };//SActrl
 
 struct SAsummary {
@@ -286,6 +287,7 @@ public:
 
 struct TSctrl {
 	int mi_itmax;		//max number of iterations
+	int mi_log_gap;		//log every Nth record to file and screen (1 = every record)
 };//TSctrl
 
 struct TSsummary {
@@ -402,6 +404,7 @@ struct GActrl {
 	int mi_n_xover;		//generally assumed 2 offspring per xover
 	double md_pmutate;
 	int mi_elitist;		//1 => elitist strategy used, => 0 otherwise
+	int mi_log_gap;		//log every Nth record to file and screen (1 = every record)
 };//GActrl
 
 class XoverBase {
@@ -575,6 +578,7 @@ struct VNSctrl {
 
 	//logfile settings
 	bool mb_every_it;		//true => every k-step logged : false => log end of iteration only
+	int mi_log_gap;			//log every Nth record to file and screen (1 = every record)
 };//VNSctrl
 
 struct VNSsummary {

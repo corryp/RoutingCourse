@@ -9,6 +9,7 @@ tfact,0.95,
 stale_step_lim,10,
 max_iter,0,0=no limit|any positive int
 log_every_it,0,0|1
+log_gap,10,log every Nth record to file and screen
 p_2opt,0.34,(multi only)
 p_swap,0.33,(multi only)
 p_ins,0.33,(multi only)

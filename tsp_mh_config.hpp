@@ -162,6 +162,7 @@ SActrl initialise_sa(TSPnbrOp*& nhd, TSPsoln*& x0, int ai_n, vector<vector<doubl
     hyper_params.mi_stale_step_lim = config.count("stale_step_lim") ? stoi(config["stale_step_lim"]) : 10;
     hyper_params.mi_max_iter = config.count("max_iter") ? stoi(config["max_iter"]) : 0;
     hyper_params.mb_every_it = config.count("log_every_it") ? (stoi(config["log_every_it"]) != 0) : false;
+    hyper_params.mi_log_gap = config.count("log_gap") ? stoi(config["log_gap"]) : 10;
 
     return hyper_params;
 }
@@ -232,6 +233,7 @@ TSctrl initialise_ts(TSPnbrOp*& nhd, TSPsoln*& x0, TabuListZhash*& tabu_list, TS
     // Configure TS-specific hyperparameters
     TSctrl hyper_params;
     hyper_params.mi_itmax = config.count("itmax") ? stoi(config["itmax"]) : 1000;
+    hyper_params.mi_log_gap = config.count("log_gap") ? stoi(config["log_gap"]) : 10;
 
     return hyper_params;
 }
@@ -306,6 +308,7 @@ GActrl initialise_ga(TSPnbrOp*& mutt, TSPxover*& xover, int ai_n, vector<vector<
     hyper_params.mi_n_xover = config.count("n_xover") ? stoi(config["n_xover"]) : 10;
     hyper_params.md_pmutate = config.count("pmutate") ? stod(config["pmutate"]) : 0.1;
     hyper_params.mi_elitist = config.count("elitist") ? stoi(config["elitist"]) : 1;
+    hyper_params.mi_log_gap = config.count("log_gap") ? stoi(config["log_gap"]) : 10;
 
     return hyper_params;
 }
@@ -360,6 +363,7 @@ VNSctrl initialise_vns(vector<NbrOp*>& nhds, TSPsoln*& x0, int ai_n, vector<vect
     hyper_params.mi_max_iter = config.count("max_iter") ? stoi(config["max_iter"]) : 100;
     hyper_params.mi_shake_steps = config.count("shake_steps") ? stoi(config["shake_steps"]) : 1;
     hyper_params.mb_every_it = config.count("log_every_it") ? (stoi(config["log_every_it"]) != 0) : false;
+    hyper_params.mi_log_gap = config.count("log_gap") ? stoi(config["log_gap"]) : 10;
 
     return hyper_params;
 }

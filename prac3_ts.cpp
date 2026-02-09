@@ -21,9 +21,13 @@ int main() {
     // Create solution object for best found
     TSPsoln x_best(n);
 
+    // Set up log file
+    ofstream f_log("ts_log.csv");
+    Logger log(f_log, false, hyper_params.mi_log_gap);
+
     // Run tabu search
     clock_t t_start = clock();
-    TSsummary stats = gx_tabu_search(hyper_params, *tabu_list, long_mem, *nhd, *x0, x_best);
+    TSsummary stats = gx_tabu_search(hyper_params, *tabu_list, long_mem, *nhd, *x0, x_best, &log);
     double d_cpu = (clock() - t_start) / (double)CLOCKS_PER_SEC;
 
     // Output results

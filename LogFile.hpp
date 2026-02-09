@@ -26,14 +26,14 @@ private:
 public:
 	bool mb_to_screen;
 	bool mb_to_file;
-	int mi_screen_gap;
+	int mi_log_gap;
 
-	Logger(ofstream &af, bool ab_to_screen = false, int ai_screen_gap = 1) : mf(af), mb_to_file(true), mb_to_screen(ab_to_screen), mi_screen_gap(ai_screen_gap) {}
+	Logger(ofstream &af, bool ab_to_screen = false, int ai_log_gap = 1) : mf(af), mb_to_file(true), mb_to_screen(ab_to_screen), mi_log_gap(ai_log_gap) {}
 
-	void m_set_options(bool ab_to_screen, bool ab_to_file, int ai_screen_gap) {
+	void m_set_options(bool ab_to_screen, bool ab_to_file, int ai_log_gap) {
 		mb_to_screen = ab_to_screen;
 		mb_to_file = ab_to_file;
-		mi_screen_gap = ai_screen_gap;
+		mi_log_gap = ai_log_gap;
 	}//m_set_options
 
 	void m_f(string ac_id, string ac_title) {
@@ -87,16 +87,19 @@ public:
 		++mi_rec;
 		if (!mb_to_file && !mb_to_screen)
 			return;
+		bool b_log = (mi_log_gap == 1 || mi_rec % mi_log_gap == 1);
+		if (!b_log)
+			return;
 		for (m_it = mv_cols.begin(); m_it != mv_cols.end(); m_it++) {
 			if (mb_to_file) {
 				if (m_it != mv_cols.begin()) mf << ",";
 				mf << m_it->mc_val;
 			}//if
-			if (mb_to_screen && m_it->mb_to_screen && (mi_screen_gap == 1 || mi_rec % mi_screen_gap == 1))
+			if (mb_to_screen && m_it->mb_to_screen)
 				cout << " " << m_it->mc_val;
 		}//m_it
 		if (mb_to_file) mf << endl;
-		if (mb_to_screen && (mi_screen_gap == 1 || mi_rec % mi_screen_gap == 1))
+		if (mb_to_screen)
 			cout << endl;
 	}//m_write_record
 

@@ -7,6 +7,7 @@ tourn_size,3,tournament size for selection
 n_xover,10,number of crossovers per generation
 pmutate,0.1,mutation probability
 elitist,1,0=disabled|1=enabled
+log_gap,10,log every Nth record to file and screen
 p_2opt,0.34,(multi only)
 p_swap,0.33,(multi only)
 p_ins,0.33,(multi only)
