@@ -3,6 +3,12 @@
 #include "BasicTSPheuristics.hpp"
 #include "metaheuristics.hpp"
 
+//Neighbourhood type identifiers (used by long-term memory to track moves per nhd type)
+const int NHD_2OPT = 0;
+const int NHD_SWAP = 1;
+const int NHD_INS  = 2;
+const int NHD_COUNT = 3;	//total number of distinct neighbourhood types
+
 class TSPsoln : public Soln {
 public:
 	vector<int> mi_x;
@@ -35,23 +41,27 @@ class TSPnbrOp : public NbrOp {
 public:
 	const int mi_n;
 	const vector<vector<double>> &md_dist;
+	const int mi_nhd_id;	//neighbourhood type id (NHD_2OPT/SWAP/INS); for OpMulti the field is unused — sub-nhd id is propagated via mi_k_prev/mi_k_held
 
 	int mi_i;				//current cities/or tour positions in full neighbourhood enumeration
 	int mi_j;
 
 	int mi_i_prev;			//most recent pair of cities evaluated
 	int mi_j_prev;
+	int mi_k_prev;			//neighbourhood type id of most recent move (matches mi_nhd_id for single-nhd ops; sub-nhd id for OpMulti)
 	double md_z_prev;
 
 	int mi_i_held;			//pair of cities held for later build of neighbour
 	int mi_j_held;
+	int mi_k_held;			//neighbourhood type id of held move
 	double md_z_held;
 
-	TSPnbrOp(const int ai_n, const vector<vector<double>> &ad_dist) : mi_n(ai_n), md_dist(ad_dist) {}
+	TSPnbrOp(const int ai_n, const vector<vector<double>> &ad_dist, int ai_nhd_id) : mi_n(ai_n), md_dist(ad_dist), mi_nhd_id(ai_nhd_id) {}
 
 	void m_hold_nbr() {
 		mi_i_held = mi_i_prev;
 		mi_j_held = mi_j_prev;
+		mi_k_held = mi_k_prev;
 		md_z_held = md_z_prev;
 	}//m_hold_nbr
 
@@ -84,6 +94,7 @@ public:
 		mi_j = j;
 		mi_i_prev = i;
 		mi_j_prev = j;
+		mi_k_prev = mi_nhd_id;
 
 		if (ap_nbr != 0) {
 			m_hold_nbr();
@@ -97,6 +108,7 @@ public:
 		double z = md_nbr_z(dynamic_cast<const TSPsoln&>(a_x));
 		mi_i_prev = mi_i;
 		mi_j_prev = mi_j;
+		mi_k_prev = mi_nhd_id;
 
 		if (mi_j == mi_n - 1) {		//index to next neighbour
 			if (mi_i == mi_n - 3) {
@@ -130,7 +142,7 @@ public:
 		return z;
 	}//md_nbr_z
 
-	Op2opt(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist) {}
+	Op2opt(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist, NHD_2OPT) {}
 };//Op2opt
 
 class OpSwap : public TSPnbrOp {
@@ -140,6 +152,7 @@ public:
 		mi_j = mi_i + 1 + gi_rand(mi_n - 1 - (mi_i + 1));
 		mi_i_prev = mi_i;
 		mi_j_prev = mi_j;
+		mi_k_prev = mi_nhd_id;
 
 		if (ap_nbr != 0) {
 			m_hold_nbr();
@@ -158,6 +171,7 @@ public:
 		double z = md_nbr_z(dynamic_cast<const TSPsoln&>(a_x));
 		mi_i_prev = mi_i;
 		mi_j_prev = mi_j;
+		mi_k_prev = mi_nhd_id;
 
 		if (mi_j == mi_n - 1) {		//index to next neighbour
 			if (mi_i == mi_n - 2) {
@@ -219,7 +233,7 @@ public:
 		return z;
 	}//md_nbr_z
 
-	OpSwap(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist) {}
+	OpSwap(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist, NHD_SWAP) {}
 };//OpSwap
 
 class OpIns : public TSPnbrOp {
@@ -231,6 +245,7 @@ public:
 			mi_j = gi_rand(mi_n - 1);
 		mi_i_prev = mi_i;
 		mi_j_prev = mi_j;
+		mi_k_prev = mi_nhd_id;
 
 		if (ap_nbr != 0) {
 			m_hold_nbr();
@@ -249,6 +264,7 @@ public:
 		double z = md_nbr_z(dynamic_cast<const TSPsoln&>(a_x));
 		mi_i_prev = mi_i;
 		mi_j_prev = mi_j;
+		mi_k_prev = mi_nhd_id;
 
 		++mi_j;
 		while (mi_i == mi_j || mi_i == mi_j + 1 || mi_i == mi_j - mi_n + 1)
@@ -286,7 +302,7 @@ public:
 		return z;
 	}//md_nbr_z
 
-	OpIns(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist) {}
+	OpIns(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist, NHD_INS) {}
 };//OpIns
 
 
@@ -307,21 +323,24 @@ public:
 	double md_rand_nbr(const Soln &a_x, Soln* ap_nbr = 0) {
 		double d_rnd = md_rand();
 		double d_sum = 0;
-		for (int k = 0; k < mv_nhd.size() - 1; ++k) {
-			d_sum += md_pnhd[k];
+		int k = (int)mv_nhd.size() - 1;	//default to last (handles cumulative-sum overshoot)
+		for (int kk = 0; kk < (int)mv_nhd.size() - 1; ++kk) {
+			d_sum += md_pnhd[kk];
 			if (d_rnd <= d_sum) {
-				mi_prev_nhd = k;
-				return mv_nhd[k]->md_rand_nbr(a_x);
+				k = kk;
+				break;
 			}//if
-		}//k
-		mi_prev_nhd = mv_nhd.size() - 1;
+		}//kk
+		mi_prev_nhd = k;
+		double z = mv_nhd[k]->md_rand_nbr(a_x, ap_nbr);
 
-		if (ap_nbr != 0) {
-			m_hold_nbr();
-			m_build_held_nbr(a_x, ap_nbr);
-		}//ap_nbr
+		//propagate (i, j, k)_prev from active sub-neighbourhood up to OpMulti
+		TSPnbrOp* p_sub = dynamic_cast<TSPnbrOp*>(mv_nhd[k]);
+		mi_i_prev = p_sub->mi_i_prev;
+		mi_j_prev = p_sub->mi_j_prev;
+		mi_k_prev = p_sub->mi_k_prev;
 
-		return mv_nhd.back()->md_rand_nbr(a_x);
+		return z;
 	}//md_rand_nbr
 
 	double md_next_nbr(const Soln &a_x, bool &ab_stop, Soln* ap_nbr = 0) {
@@ -329,16 +348,24 @@ public:
 		double z = mv_nhd[mi_nhd]->md_next_nbr(a_x, b_stop);
 		mi_prev_nhd = mi_nhd;
 
+		//propagate (i, j, k)_prev from active sub-neighbourhood up to OpMulti
+		TSPnbrOp* p_sub = dynamic_cast<TSPnbrOp*>(mv_nhd[mi_nhd]);
+		mi_i_prev = p_sub->mi_i_prev;
+		mi_j_prev = p_sub->mi_j_prev;
+		mi_k_prev = p_sub->mi_k_prev;
+
 		if (b_stop)
 			++mi_nhd;
-		ab_stop = (mi_nhd >= mv_nhd.size());
+		ab_stop = (mi_nhd >= (int)mv_nhd.size());
+		if (ab_stop)
+			m_reset_nhd();		//mirror single-nhd self-reset so TS can re-enter on next iteration
 
 		return z;
 	}//md_next_nbr
 
 	void m_reset_nhd() {
 		mi_nhd = 0;
-		for (int i = 0; i < mv_nhd.size(); ++i)
+		for (int i = 0; i < (int)mv_nhd.size(); ++i)
 			mv_nhd[i]->m_reset_nhd();
 	}//m_reset_nhd
 
@@ -349,11 +376,17 @@ public:
 	void m_hold_nbr() {
 		mi_held_nhd = mi_prev_nhd;
 		mv_nhd[mi_held_nhd]->m_hold_nbr();
+
+		//propagate (i, j, k)_held from held sub-neighbourhood up to OpMulti
+		TSPnbrOp* p_sub = dynamic_cast<TSPnbrOp*>(mv_nhd[mi_held_nhd]);
+		mi_i_held = p_sub->mi_i_held;
+		mi_j_held = p_sub->mi_j_held;
+		mi_k_held = p_sub->mi_k_held;
 	}//m_hold_nbr
 
 	double md_nbr_z(const TSPsoln &a_x) {
 		return 0;
 	}//md_nbr_z
 
-	OpMulti(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist) {}
+	OpMulti(const int ai_n, const vector<vector<double>> &ad_dist) : TSPnbrOp(ai_n, ad_dist, NHD_2OPT) {}	//id unused — k is propagated from sub-nhds
 };//OpMulti
